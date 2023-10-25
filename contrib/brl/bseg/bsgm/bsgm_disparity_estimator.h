@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include  <fstream>
 #include <sstream>
 #include <utility>
 
@@ -196,6 +197,8 @@ class bsgm_disparity_estimator
   //: sun direction in rectified image space
   vgl_vector_2d<float> sun_dir_tar_;
 
+  vil_image_view<unsigned short> img_tar_;
+
   //
   // Sub-routines called by SGM in order
   //
@@ -242,7 +245,8 @@ class bsgm_disparity_estimator
 
   void compute_shadow_data(
     const vil_image_view<bool>& invalid_target,
-    std::vector< std::vector< unsigned char* > >& app_cost,
+    //std::vector< std::vector< unsigned char* > >& app_cost,
+    std::vector< std::vector< unsigned short* > >& app_cost,
     const vil_image_view<int>& min_disparity,
     const vgl_box_2d<int>& target_window = vgl_box_2d<int>());
 
@@ -264,7 +268,9 @@ class bsgm_disparity_estimator
     unsigned short p1,
     unsigned short p2,
     int prev_min_disparity,
-    int cur_min_disparity );
+    int cur_min_disparity,
+    bool suppress_appearance = false
+    );
 
   //: Extract the min cost disparity at each pixel, using quadratic
   // interpolation if specified
@@ -507,6 +513,8 @@ bool bsgm_disparity_estimator::compute(
   if (min_disp.ni() != w_ || min_disp.nj() != h_){
     throw std::runtime_error("minimum disparity different shape than cost volume");
   }
+  img_tar_ = img_tar;
+
   // disparity image
   disp_tar.set_size(w_, h_);
 
