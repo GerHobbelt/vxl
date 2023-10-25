@@ -24,7 +24,9 @@ bsgm_disparity_estimator::bsgm_disparity_estimator(
   long long int cost_volume_width,
   long long int cost_volume_height,
   long long int num_disparities,
+  // optional shadow processing 
   vil_image_view<float> const& shadow_step_prob,
+  vil_image_view<float> const& shadow_prob,
   vgl_vector_2d<float> const& sun_dir_tar):
     params_( params ),
     w_( cost_volume_width ),
@@ -35,6 +37,7 @@ bsgm_disparity_estimator::bsgm_disparity_estimator(
     p2_min_base_( 1.0f ),
     p2_max_base_( 8.0f ),
     shadow_step_prob_(shadow_step_prob),
+    shadow_prob_(shadow_prob),
     sun_dir_tar_(sun_dir_tar)
 {
 
@@ -533,8 +536,8 @@ bsgm_disparity_estimator::run_multi_dp(
           if((shadow_prob_(x,y) > 0.5)&&(dir != shad_step_dp_dir_code))
              continue;
           
-          // suppress appearance cost in shadow but not shadow step
-          if((sp < 0.9) && (shadow_prob_(x,y) > 0.5f)){
+          // suppress appearance cost
+          if(sp > 0.5 || shadow_prob_(x,y) > 0.5f){
             suppress_appearance = true;
           }
         }
