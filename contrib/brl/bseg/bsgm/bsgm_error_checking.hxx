@@ -284,12 +284,14 @@ bsgm_shadow_step_filter(const vil_image_view<T> & img,
       }
     }
 }
-static void adaptive_shadow_prob(size_t i, size_t j,
+static void adaptive_shadow_prob(size_t i, size_t j, vil_image_view<bool> const& invalid,
                                  vil_image_view<unsigned short> const& rect_image,
                                  vil_image_view<float> const& shadow_step_prob,
                                  vgl_vector_2d<float> sun_dir, vil_image_view<float>& shadow_prob,
                                  float scan_length, float default_shadow_thresh, float shad_stp_thresh){
   int ni = rect_image.ni(), nj = rect_image.nj();
+  // could be starting from default shadow
+  bool initial_ss = shadow_step_prob(i, j) > shad_stp_thresh;
   int min_sha_step_interval = 1;
   float x_start = i, y_start = j;
   vgl_point_2d<float> ps(x_start, y_start);
@@ -325,11 +327,33 @@ static void adaptive_shadow_prob(size_t i, size_t j,
       shstp_vals.emplace_back(ss_prob, rect, xi, yi, false);
     }//end while
 
-  // analyze profile for threshold at the start of the shadow region
   size_t n = shstp_vals.size();
   bool start = false;
-  float thresh = default_shadow_thresh;
   bool done = false;
+  // scan initialized by default shadow not shadow step
+  if(!initial_ss){
+    for(size_t i = 0; i<n&&!done; ++i){
+      int xi = std::get<2>(shstp_vals[i]), yi = std::get<3>(shstp_vals[i]);
+      bool inv = invalid(xi, yi);
+      float rect = std::get<1>(shstp_vals[i]);
+      bool shadow = rect<default_shadow_thresh;
+      if(!start&& shadow){
+        start = true;
+      }
+      if(start && shadow){
+        if(!inv && rect < default_shadow_thresh)
+          shadow_prob(xi, yi) = 1.0;
+        if(i == (n-1)){
+          done = true;
+          start = false;
+        }
+      }
+    }
+    return;
+  }
+  // analyze profile for threshold at the start of the shadow region
+  float thresh = default_shadow_thresh;
+  float max_thresh = default_shadow_thresh;
   for(size_t i = 0; i<n&&!done; ++i){
     bool ss = std::get<0>(shstp_vals[i])> shad_stp_thresh;
     int ii = std::get<2>(shstp_vals[i]), jj = std::get<3>(shstp_vals[i]);
@@ -345,7 +369,6 @@ static void adaptive_shadow_prob(size_t i, size_t j,
     bool ss_right = false;
     if(i<(n-1)){
       ss_plus = std::get<0>(shstp_vals[i+1])> shad_stp_thresh;
-      // for debug purposes
       int i_plus = std::get<2>(shstp_vals[i+1]);
       int j_plus = std::get<3>(shstp_vals[i+1]);
       if(i_plus < ni-1){
@@ -363,36 +386,52 @@ static void adaptive_shadow_prob(size_t i, size_t j,
       start = true;
     }
     if(start&&std::get<4>(shstp_vals[i])){
-      thresh = rec;
+      max_thresh = rec;
+      if(rec<thresh)
+        thresh = rec;
       if(thresh < default_shadow_thresh)
         thresh = default_shadow_thresh;
       if(i == (n-1)){
         done = true;
         start = false;
       }
-      int xi = std::get<2>(shstp_vals[i]), yi = std::get<3>(shstp_vals[i]);
-      shadow_prob(xi, yi) = 1.0;
+      //int xi = std::get<2>(shstp_vals[i]), yi = std::get<3>(shstp_vals[i]);
+      //shadow_prob(xi, yi) = 1.0;
       continue;
     }
     done = true;
     start = false;
   }
-  // thresh is set at end of shad step line scan
-
+  // max_thresh is set at end of shad step line scan
+  // thresh set to minimum
+  
   // finally scan and classify shadow
   start = false;
-  bool sprint = false;
   done = false;
   for(size_t i = 0; i<n&&!done; ++i){
     int xi = std::get<2>(shstp_vals[i]), yi = std::get<3>(shstp_vals[i]);
+    bool inv = invalid(xi, yi);
     float rect = std::get<1>(shstp_vals[i]);
     bool shadow = rect<thresh;
+    //bool shadow = rect<max_thresh;
+    //bool shadow = rect<default_shadow_thresh;
     bool ss = std::get<4>(shstp_vals[i]);
-    if(!start&&(shadow||ss)){
+    //if(!start&&(shadow||ss)){
+    if(!start&&(shadow)){
       start = true;
     }
-    if(start && (ss || shadow)){
-      shadow_prob(xi, yi) = 1.0;
+    //if(start && (ss || shadow)){
+    if(start && (shadow)){
+      if(!inv && rect <= thresh)
+      //if(!inv && rect <= default_shadow_thresh)
+        shadow_prob(xi, yi) = 1.0;
+      else if(!inv && (thresh<max_thresh) && (rect < max_thresh)){
+        // float p = (1.0 - (float(rect) - thresh)/float(max_thresh-rect));
+        float p = exp(-2.5*(float(rect) - thresh)/float(max_thresh-rect));
+        if(p<0.0f) p = 0.0f;
+        if(p>1.0f) p = 1.0f;
+        shadow_prob(xi, yi)= p;
+      }
       if(i == (n-1)){
         done = true;
         start = false;
@@ -417,8 +456,8 @@ void bsgm_shadow_prob(vil_image_view<T> const& rect_img, vil_image_view<bool> co
     vil_convert_cast(rect_img, temp);
   for (size_t j = 0; j < nj; ++j)
     for (size_t i = 0; i < ni; ++i) 
-      if(!invalid(i,j) && (shadow_step_prob(i, j) >= ss_thresh))
-        adaptive_shadow_prob(i, j, temp, shadow_step_prob,
+      if(!invalid(i,j) && ((shadow_step_prob(i, j) >= ss_thresh)||(rect_img(i,j)<default_shadow_thresh)))
+        adaptive_shadow_prob(i, j, invalid, temp, shadow_step_prob,
                              sun_dir,shadow_prob, scan_length, 
                              default_shadow_thresh, ss_thresh);
 }
