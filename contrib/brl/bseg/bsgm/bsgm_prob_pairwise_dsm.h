@@ -356,6 +356,24 @@ class bsgm_prob_pairwise_dsm
   const vgl_box_2d<int>& rectified_target_window() const {return rect_target_window_;}
   const vgl_box_2d<int>& rectified_reference_window() const {return rect_reference_window_;}
 
+  //: overlay sun direction line on rectified images
+  // these images are created at runtime and do not change the class data
+  vil_image_view<PIX_T> rectified_bview0_with_sun_dir() const {
+    double line_value = std::pow(2.0, params_.effective_bits_per_pixel_) - 1.0;
+    return overlay_sun_dir(rect_bview0_, sun_dir_0_,
+                           static_cast<PIX_T>(line_value));
+  }
+  vil_image_view<PIX_T> rectified_bview1_with_sun_dir() const {
+    double line_value = std::pow(2.0, params_.effective_bits_per_pixel_) - 1.0;
+    return overlay_sun_dir(rect_bview1_, sun_dir_1_,
+                           static_cast<PIX_T>(line_value));
+  }
+  static vil_image_view<PIX_T> overlay_sun_dir(
+      const vil_image_view<PIX_T>& rect_view,
+      const vgl_vector_2d<float>& sun_dir,
+      PIX_T line_value
+  );
+
   //: disparity results
   vil_image_view<vxl_byte> invalid_map_fwd() const { return bool_to_byte(invalid_map_fwd_); }
   vil_image_view<vxl_byte> invalid_map_rev() const { return bool_to_byte(invalid_map_rev_); }
@@ -476,7 +494,6 @@ class bsgm_prob_pairwise_dsm
       }
     } else this->compute_ptset();
 
-    this->display_sun_dir_rect_bviews();
     return true;
   }
 
@@ -490,7 +507,7 @@ class bsgm_prob_pairwise_dsm
   // Note that in the window mode, only the 3-d pointset with a probability scalar is
   // computed -- no heightmaps are produced. If with_consistency_check is false then
   // no point probabilities are computed and the value is always 1.1 indicating invalid.
-  bool process_with_windows(bool& first_window = true,
+  bool process_with_windows(bool first_window = true,
                             bool with_consistency_check = false,
                             bool print_timing = false)
   {
@@ -518,6 +535,10 @@ class bsgm_prob_pairwise_dsm
       prob_ptset_.clear();
       rectify_windows();
     }
+
+    // compute invalid masks
+    this->compute_invalid_masks();
+
     // compute forward disparity & height
     this->compute_disparity_fwd();
     this->compute_height_fwd(false);  // false -> don't compute fwd heightmap
@@ -589,9 +610,6 @@ class bsgm_prob_pairwise_dsm
     vil_image_view<float>& tri_3d,
     vgl_pointset_3d<float>& ptset,
     vil_image_view<float>& heightmap);
-
-  // display sun dir
-  void display_sun_dir_rect_bviews();
 
   // z vs disparity scale
   bool z_vs_disparity_scale(double& scale) const;
