@@ -17,21 +17,13 @@ vnl_random::linear_congruential_lrand32()
 //: Construct with seed
 vnl_random::vnl_random(unsigned long seed)
   : linear_congruential_previous(seed)
-  , mz_array_position(0UL)
-  , mz_borrow(0)
-  , mz_previous_normal_flag(0)
+
 {
   reseed(seed);
 }
 
 //: Construct with seed
-vnl_random::vnl_random(unsigned long seed[vnl_random_array_size])
-  : mz_array_position(0UL)
-  , mz_borrow(0)
-  , mz_previous_normal_flag(0)
-{
-  reseed(seed);
-}
+vnl_random::vnl_random(unsigned long seed[vnl_random_array_size]) { reseed(seed); }
 
 vnl_random::vnl_random(const vnl_random & r)
   : linear_congruential_previous(r.linear_congruential_previous)
@@ -61,11 +53,7 @@ vnl_random::operator=(const vnl_random & r)
   return *this;
 }
 
-vnl_random::vnl_random()
-
-{
-  reseed();
-}
+vnl_random::vnl_random() { reseed(); }
 
 vnl_random::~vnl_random()
 {
@@ -135,7 +123,9 @@ vnl_random::normal()
   }
   else
   {
-    double x, y, r2;
+    double x;
+    double y;
+    double r2;
     do
     {
       x = drand32(-1.0, 1.0);
@@ -165,7 +155,9 @@ vnl_random::normal64()
   }
   else
   {
-    double x, y, r2;
+    double x;
+    double y;
+    double r2;
     do
     {
       x = drand64(-1.0, 1.0);

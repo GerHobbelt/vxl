@@ -9,24 +9,13 @@
 
 // destructor - undo the spCreate() from the constructor(s)
 // (memory leak fix of 7 Feb. 2008 by Toon Huysmans)
-vnl_sparse_lu::~vnl_sparse_lu()
-{
-  spDestroy(pmatrix_);
-}
+vnl_sparse_lu::~vnl_sparse_lu() { spDestroy(pmatrix_); }
 
 //: constructor - controls if condition information is computed
-vnl_sparse_lu::vnl_sparse_lu(vnl_sparse_matrix<double> const & M, operation mode)
+vnl_sparse_lu::vnl_sparse_lu(const vnl_sparse_matrix<double> & M, operation mode)
   : A_(M)
-  , factored_(false)
-  , condition_computed_(false)
   , mode_(mode)
-  , norm_(0)
-  , rcond_(0)
-  , largest_(0)
-  , pivot_thresh_(0)
-  , absolute_thresh_(0)
-  , diag_pivoting_(1)
-  , pmatrix_(nullptr)
+
 {
   int n = (int)M.columns();
   assert(n == (int)(M.rows()));
@@ -78,7 +67,7 @@ vnl_sparse_lu::est_condition()
 
 //: Solve least squares problem M x = b.
 void
-vnl_sparse_lu::solve(vnl_vector<double> const & b, vnl_vector<double> * x)
+vnl_sparse_lu::solve(const vnl_vector<double> & b, vnl_vector<double> * x)
 {
   if (!pmatrix_)
   {
@@ -129,7 +118,7 @@ vnl_sparse_lu::solve(vnl_vector<double> const & b, vnl_vector<double> * x)
 
 //: Solve least squares problem M x = b.
 vnl_vector<double>
-vnl_sparse_lu::solve(vnl_vector<double> const & b)
+vnl_sparse_lu::solve(const vnl_vector<double> & b)
 {
   vnl_vector<double> ret(b.size());
   this->solve(b, &ret);
@@ -138,7 +127,7 @@ vnl_sparse_lu::solve(vnl_vector<double> const & b)
 
 //: Solve problem M^t x = b
 void
-vnl_sparse_lu::solve_transpose(vnl_vector<double> const & b, vnl_vector<double> * x)
+vnl_sparse_lu::solve_transpose(const vnl_vector<double> & b, vnl_vector<double> * x)
 {
   if (!pmatrix_)
   {
@@ -189,7 +178,7 @@ vnl_sparse_lu::solve_transpose(vnl_vector<double> const & b, vnl_vector<double> 
 
 //: Solve problem M^t x = b
 vnl_vector<double>
-vnl_sparse_lu::solve_transpose(vnl_vector<double> const & b)
+vnl_sparse_lu::solve_transpose(const vnl_vector<double> & b)
 {
   vnl_vector<double> ret(b.size());
   this->solve_transpose(b, &ret);
@@ -245,7 +234,7 @@ vnl_sparse_lu::rcond()
   return rcond_;
 }
 
-//:Estimated upper bound of error in solution
+//: Estimated upper bound of error in solution
 double
 vnl_sparse_lu::max_error_bound()
 {

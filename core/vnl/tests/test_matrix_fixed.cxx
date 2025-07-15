@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstddef>
 #include <cmath>
+#include <limits>
 #include <iostream>
 
 #include "vnl/vnl_matrix_fixed.h"
@@ -294,19 +295,21 @@ test_int()
        true);
 
   { // test operator-() on unsigned values
-    unsigned int vvalues[] = {1, 2, 3, 4};
-    int out_values[] = {-1, -2, -3, -4};
-    const vnl_matrix_fixed<int,2,2> outm( out_values);
+    unsigned int vvalues[] = { 1, 2, 3, 4 };
+    int out_values[] = { -1, -2, -3, -4 };
+    const vnl_matrix_fixed<int, 2, 2> outm(out_values);
 
-    vnl_matrix_fixed<unsigned int,2,2> unsigned_m22(vvalues);
-    const vnl_matrix_fixed<int,2,2> minus_v1 = -unsigned_m22;
-    const vnl_matrix_fixed<int,2,2> minus_v2 = unsigned_m22.operator-();
+    vnl_matrix_fixed<unsigned int, 2, 2> unsigned_m22(vvalues);
+    const vnl_matrix_fixed<int, 2, 2> minus_v1 = -unsigned_m22;
+    const vnl_matrix_fixed<int, 2, 2> minus_v2 = unsigned_m22.operator-();
     TEST("unsigned_m22.operator-()",
          (outm(0, 0) == minus_v1(0, 0) && outm(0, 1) == minus_v1(0, 1) && outm(1, 0) == minus_v1(1, 0) &&
-          outm(1, 1) == minus_v1(1, 1)), true);
+          outm(1, 1) == minus_v1(1, 1)),
+         true);
     TEST("unsigned_m22.operator-()",
          (outm(0, 0) == minus_v2(0, 0) && outm(0, 1) == minus_v2(0, 1) && outm(1, 0) == minus_v2(1, 0) &&
-          outm(1, 1) == minus_v2(1, 1)), true);
+          outm(1, 1) == minus_v2(1, 1)),
+         true);
   }
 }
 
@@ -382,11 +385,10 @@ test_float()
        true);
 
   // additional tests
-  vnl_float_2x2 m1, m2;
   float mvalues[] = { 0, -2, 2, 0 };
   vnl_float_2x2 m(mvalues);
-  m1 = m;
-  m2 = m;
+  vnl_float_2x2 m1 = m;
+  vnl_float_2x2 m2 = m;
   vnl_matrix<float> m3;
   TEST("m(i,j)", (m(0, 0) == 0 && m(0, 1) == -2 && m(1, 0) == 2 && m(1, 1) == 0), true);
   TEST("m.max_value()", m.max_value(), 2);

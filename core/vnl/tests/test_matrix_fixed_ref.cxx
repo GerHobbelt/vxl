@@ -12,7 +12,7 @@ test_matrix_fixed_ref()
   {
     constexpr double bulk_data_array[4]{ 1.0, 2.0, 3.0, 4.0 };
     vnl_matrix_fixed<double, 2, 2> initial_fixed_size_matrix(bulk_data_array);
-    vnl_matrix_ref<double> ref_to_data( initial_fixed_size_matrix.as_ref() );
+    vnl_matrix_ref<double> ref_to_data(initial_fixed_size_matrix.as_ref());
 
     TEST("vnl_matrix_ref{ vnl_matrix_fixed } share data pointer",
          initial_fixed_size_matrix.data_block() == ref_to_data.data_block(),
@@ -44,7 +44,8 @@ test_matrix_fixed_ref()
   typedef vnl_matrix_fixed_ref<double, rows, cols> mfr;
   typedef vnl_matrix_fixed_ref_const<double, rows, cols> mfrc;
 
-  unsigned int i, j;
+  unsigned int i;
+  unsigned int j;
   mf mat; // copy in
   for (i = 0; i < rows; ++i)
     for (j = 0; j < cols; ++j)
@@ -135,13 +136,16 @@ test_matrix_fixed_ref()
   // arithmetic
   {
     // plus
-    mf a, b;
+    mf a;
+    mf b;
     std::generate(a.begin(), a.end(), std::rand);
     std::generate(b.begin(), b.end(), std::rand);
-    mfrc arefc(a), brefc(b);
+    mfrc arefc(a);
+    mfrc brefc(b);
     mf mc = arefc + brefc;
 
-    mfr aref(a), bref(b);
+    mfr aref(a);
+    mfr bref(b);
     mf m = aref + bref;
 
     mf m2 = arefc + bref;
@@ -152,13 +156,16 @@ test_matrix_fixed_ref()
   }
   {
     // times
-    mf a, b;
+    mf a;
+    mf b;
     std::generate(a.begin(), a.end(), std::rand);
     std::generate(b.begin(), b.end(), std::rand);
-    mfrc arefc(a), brefc(b);
+    mfrc arefc(a);
+    mfrc brefc(b);
     mf mc = arefc + brefc;
 
-    mfr aref(a), bref(b);
+    mfr aref(a);
+    mfr bref(b);
     mf m = aref + bref;
 
     mf m2 = arefc + bref;

@@ -36,7 +36,9 @@ static const int base64_encoding[] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', '
 
 static char out_buf[4];
 
-static const char *encode_triplet(const char data[3], unsigned n) {
+static const char *
+encode_triplet(const char data[3], unsigned n)
+{
   assert(n > 0 && n < 4);
   out_buf[0] = base64_encoding[(data[0] & 0xFC) >> 2];
 
@@ -104,13 +106,13 @@ encode_base64(const std::string & in)
 }
 
 
-vil1_stream_url::vil1_stream_url(char const * url)
+vil1_stream_url::vil1_stream_url(const char * url)
   : u_(nullptr)
 {
   if (std::strncmp(url, "http://", 7) != 0 && std::strncmp(url, "https://", 8) != 0)
     return; // doesn't look like a URL to me....
 
-  char const * p = url + 7;
+  const char * p = url + 7;
   while (*p && *p != '/')
     ++p;
 
@@ -146,7 +148,7 @@ vil1_stream_url::vil1_stream_url(char const * url)
     else if (path[k] == '%')
       path.replace(k, 1, "%25");
 
-      // so far so good.
+  // so far so good.
 #ifdef DEBUG
   std::cerr << "auth = \'" << auth << "\'\n"
             << "host = \'" << host << "\'\n"
@@ -222,24 +224,20 @@ vil1_stream_url::vil1_stream_url(char const * url)
     return;
   }
 
-  // buffer for data transfers over socket.
-  char buffer[4096];
-
   // send HTTP 1.1 request.
-  std::sprintf(buffer, "GET /%s / HTTP/1.1\n", path.c_str());
+  std::string request = "GET /" + path + " / HTTP/1.1\n";
   if (!auth.empty())
-    std::sprintf(buffer + std::strlen(buffer), "Authorization:  Basic %s\n", encode_base64(auth).c_str());
-    //    std::sprintf(buffer+std::strlen(buffer), "Authorization:  user  testuser:testuser\n");
+    request += "Authorization:  Basic " + encode_base64(auth) + "\n";
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
-  if (send(tcp_socket, buffer, (int)std::strlen(buffer), 0) < 0)
+  if (send(tcp_socket, request.c_str(), (int)request.length(), 0) < 0)
   {
     std::cerr << __FILE__ ": error sending HTTP request\n";
     closesocket(tcp_socket);
     return;
   }
 #else
-  if (::write(tcp_socket, buffer, std::strlen(buffer)) < 0)
+  if (::write(tcp_socket, request.c_str(), request.length()) < 0)
   {
     std::cerr << __FILE__ ": error sending HTTP request\n";
     close(tcp_socket);
@@ -256,6 +254,9 @@ vil1_stream_url::vil1_stream_url(char const * url)
 #endif
 
   //  std::ofstream test2("/test2.jpg", std::ios::binary);
+
+  // buffer for data transfers over socket.
+  char buffer[4096];
 
   // read from socket into memory.
   u_ = new vil1_stream_core;

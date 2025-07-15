@@ -1,6 +1,7 @@
 // This is core/vnl/tests/test_vector.cxx
 #include <iostream>
 #include <sstream>
+#include <limits>
 #include "vnl/vnl_math.h"
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_float_3.h"
@@ -18,13 +19,13 @@ test_common_interface()
 
   const typename TContainer::element_type l_values[4] = { 0, 1, 2, 3 };
   TContainer l(4, 4, l_values);
-  TEST("l.front()", l.front() , 0);
-  TEST("l.back()", l.back() , 3);
+  TEST("l.front()", l.front(), 0);
+  TEST("l.back()", l.back(), 3);
 
   const TContainer l_const(4, 4, l_values);
 
-  TEST("l_const.front()", l_const.front() , 0);
-  TEST("l_const.back()", l_const.back() , 3);
+  TEST("l_const.front()", l_const.front(), 0);
+  TEST("l_const.back()", l_const.back(), 3);
 
   TContainer l_swap(l);
   TContainer l_std_swap(l);
@@ -41,7 +42,6 @@ test_common_interface()
   std::swap(l_std_swap, r_std_swap);
   TEST("std::swap left-right", l.is_equal(r_std_swap, 10e-6), true);
   TEST("std::swap right-left", r.is_equal(l_std_swap, 10e-6), true);
-
 }
 
 
@@ -319,33 +319,37 @@ vnl_vector_test_int()
   }
 
   { // test operator-() on unsigned values
-    unsigned int vvalues[] = {1, 2, 3, 4};
-    int out_values[] = {-1, -2, -3, -4};
+    unsigned int vvalues[] = { 1, 2, 3, 4 };
+    int out_values[] = { -1, -2, -3, -4 };
 
     vnl_vector<unsigned int> unsigned_v(4, 4, vvalues);
     const vnl_vector<int> minus_v1 = -unsigned_v;
     const vnl_vector<int> minus_v2 = unsigned_v.operator-();
     TEST("unsigned_v.operator-()",
          (out_values[0] == minus_v1[0] && out_values[1] == minus_v1[1] && out_values[2] == minus_v1[2] &&
-          out_values[3] == minus_v1[3]), true);
+          out_values[3] == minus_v1[3]),
+         true);
     TEST("unsigned_v.operator-()",
          (out_values[0] == minus_v2[0] && out_values[1] == minus_v2[1] && out_values[2] == minus_v2[2] &&
-          out_values[3] == minus_v2[3]), true);
+          out_values[3] == minus_v2[3]),
+         true);
   }
 
   { // test operator-() on unsigned values
-    unsigned int vvalues[] = {1, 2, 3, 4};
-    int out_values[] = {-1, -2, -3, -4};
+    unsigned int vvalues[] = { 1, 2, 3, 4 };
+    int out_values[] = { -1, -2, -3, -4 };
 
-    vnl_vector_fixed<unsigned int,4> unsigned_v(vvalues);
-    const vnl_vector_fixed<int,4> minus_v1 = -unsigned_v;
-    const vnl_vector_fixed<int,4> minus_v2 = unsigned_v.operator-();
+    vnl_vector_fixed<unsigned int, 4> unsigned_v(vvalues);
+    const vnl_vector_fixed<int, 4> minus_v1 = -unsigned_v;
+    const vnl_vector_fixed<int, 4> minus_v2 = unsigned_v.operator-();
     TEST("unsigned_v.operator-()",
          (out_values[0] == minus_v1[0] && out_values[1] == minus_v1[1] && out_values[2] == minus_v1[2] &&
-          out_values[3] == minus_v1[3]), true);
+          out_values[3] == minus_v1[3]),
+         true);
     TEST("unsigned_v.operator-()",
          (out_values[0] == minus_v2[0] && out_values[1] == minus_v2[1] && out_values[2] == minus_v2[2] &&
-          out_values[3] == minus_v2[3]), true);
+          out_values[3] == minus_v2[3]),
+         true);
   }
   { // test vnl_vector_fixed::is_equal
     using int_vector_fixed_type = vnl_vector_fixed<int, 2>;
@@ -658,7 +662,9 @@ vnl_vector_test_matrix()
 
   int v2values[] = { 1, 0 };
   int v3values[] = { 1, 0, 0 };
-  vnl_vector<int> v, v2(2, 2, v2values), v3(3, 3, v3values);
+  vnl_vector<int> v;
+  vnl_vector<int> v2(2, 2, v2values);
+  vnl_vector<int> v3(3, 3, v3values);
   TEST("v.pre_multiply(m)", ((v = v3), (v.pre_multiply(m)), (v.size() == 2 && v(0) == 1 && v(1) == 4)), true);
   TEST("v.post_multiply(m)",
        ((v = v2), (v.post_multiply(m)), (v.size() == 3 && v(0) == 1 && v(1) == 2 && v(2) == 3)),

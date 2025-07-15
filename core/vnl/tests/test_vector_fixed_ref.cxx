@@ -23,7 +23,7 @@ test_vector_fixed_ref()
   {
     constexpr double bulk_data_array[4]{ 1.0, 2.0, 3.0, 4.0 };
     vnl_vector_fixed<double, 4> initial_fixed_size_matrix(bulk_data_array);
-    vnl_vector_ref<double> ref_to_data( initial_fixed_size_matrix.as_ref() );
+    vnl_vector_ref<double> ref_to_data(initial_fixed_size_matrix.as_ref());
 
     TEST("vnl_vector_ref{ vnl_vector_fixed } share data pointer",
          initial_fixed_size_matrix.data_block() == ref_to_data.data_block(),
@@ -47,15 +47,15 @@ test_vector_fixed_ref()
   constexpr size_t size = 4;
 
   {
-    vnl_vector_fixed<unsigned int, size> test_front_back{11, 22, 33, 44};
-    TEST("test_front_back.front()", test_front_back.front() , 11);
-    TEST("test_front_back.back()", test_front_back.back() , 44);
+    vnl_vector_fixed<unsigned int, size> test_front_back{ 11, 22, 33, 44 };
+    TEST("test_front_back.front()", test_front_back.front(), 11);
+    TEST("test_front_back.back()", test_front_back.back(), 44);
   }
 
   {
-    const vnl_vector_fixed<unsigned int, size> test_front_back_const{11, 22, 33, 44};
-    TEST("test_front_back_const.front()", test_front_back_const.front() , 11);
-    TEST("test_front_back_const.back()", test_front_back_const.back() , 44);
+    const vnl_vector_fixed<unsigned int, size> test_front_back_const{ 11, 22, 33, 44 };
+    TEST("test_front_back_const.front()", test_front_back_const.front(), 11);
+    TEST("test_front_back_const.back()", test_front_back_const.back(), 44);
   }
 
   typedef vnl_vector_fixed<double, size> vf;
@@ -109,13 +109,16 @@ test_vector_fixed_ref()
   // arithmetic
   {
     // plus
-    vf a, b;
+    vf a;
+    vf b;
     std::generate(a.begin(), a.end(), std::rand);
     std::generate(b.begin(), b.end(), std::rand);
-    vfrc arefc(a), brefc(b);
+    vfrc arefc(a);
+    vfrc brefc(b);
     vf mc = arefc + brefc;
 
-    vfr aref(a), bref(b);
+    vfr aref(a);
+    vfr bref(b);
     vf m = aref + bref;
 
     vf m2 = arefc + bref;
@@ -126,13 +129,16 @@ test_vector_fixed_ref()
   }
   {
     // times
-    vf a, b;
+    vf a;
+    vf b;
     std::generate(a.begin(), a.end(), std::rand);
     std::generate(b.begin(), b.end(), std::rand);
-    vfrc arefc(a), brefc(b);
+    vfrc arefc(a);
+    vfrc brefc(b);
     vf mc = arefc + brefc;
 
-    vfr aref(a), bref(b);
+    vfr aref(a);
+    vfr bref(b);
     vf m = aref + bref;
 
     vf m2 = arefc + bref;

@@ -94,10 +94,14 @@ vnl_sparse_lm::minimize(vnl_vector<double> & a,
     return false;
 
   //: Systems to solve will be Sc*dc=sec and Sa*da=sea
-  vnl_matrix<double> Sc(size_c_, size_c_), Sa(size_a_, size_a_);
-  vnl_vector<double> sec(size_c_), sea(size_a_);
+  vnl_matrix<double> Sc(size_c_, size_c_);
+  vnl_matrix<double> Sa(size_a_, size_a_);
+  vnl_vector<double> sec(size_c_);
+  vnl_vector<double> sea(size_a_);
   // update vectors
-  vnl_vector<double> da(size_a_), db(size_b_), dc(size_c_);
+  vnl_vector<double> da(size_a_);
+  vnl_vector<double> db(size_b_);
+  vnl_vector<double> dc(size_c_);
 
 
   // mu is initialized now because the compiler produces warnings -MM
@@ -252,8 +256,11 @@ vnl_sparse_lm::minimize(vnl_vector<double> & a,
       }
 
       // compute updated parameters and residuals of the new parameters
-      vnl_vector<double> new_a(a - da), new_b(b - db), new_c(c - dc);
-      vnl_vector<double> new_e(e_.size()), new_weights(weights_.size());
+      vnl_vector<double> new_a(a - da);
+      vnl_vector<double> new_b(b - db);
+      vnl_vector<double> new_c(c - dc);
+      vnl_vector<double> new_e(e_.size());
+      vnl_vector<double> new_weights(weights_.size());
       f_->f(new_a, new_b, new_c, new_e); // compute the new residual vector
       ++num_evaluations_;
 
@@ -318,9 +325,9 @@ vnl_sparse_lm::minimize(vnl_vector<double> & a,
 
 //: check vector sizes and verify that they match the problem size
 bool
-vnl_sparse_lm::check_vector_sizes(vnl_vector<double> const & a,
-                                  vnl_vector<double> const & b,
-                                  vnl_vector<double> const & c)
+vnl_sparse_lm::check_vector_sizes(const vnl_vector<double> & a,
+                                  const vnl_vector<double> & b,
+                                  const vnl_vector<double> & c)
 {
   if (size_a_ + size_b_ > size_e_)
   {
@@ -688,7 +695,7 @@ vnl_sparse_lm::solve_dc(vnl_vector<double> & dc)
 
 //: compute sea using ea, Z, dc, Y, and eb
 void
-vnl_sparse_lm::compute_sea(vnl_vector<double> const & dc, vnl_vector<double> & sea)
+vnl_sparse_lm::compute_sea(const vnl_vector<double> & dc, vnl_vector<double> & sea)
 {
   // CRS matrix of indices into e, A, B, C, W, Y
   const vnl_crs_index & crs = f_->residual_indices();
@@ -771,7 +778,7 @@ vnl_sparse_lm::compute_Sa_sea(vnl_matrix<double> & Sa, vnl_vector<double> & sea)
 
 //: back solve to find db using da and dc
 void
-vnl_sparse_lm::backsolve_db(vnl_vector<double> const & da, vnl_vector<double> const & dc, vnl_vector<double> & db)
+vnl_sparse_lm::backsolve_db(const vnl_vector<double> & da, const vnl_vector<double> & dc, vnl_vector<double> & db)
 {
   // CRS matrix of indices into e, A, B, C, W, Y
   const vnl_crs_index & crs = f_->residual_indices();
@@ -856,7 +863,7 @@ vnl_sparse_lm::diagnose_outcome(std::ostream & s) const
 }
 
 
-vnl_matrix<double> const &
+const vnl_matrix<double> &
 vnl_sparse_lm::get_JtJ()
 {
   return inv_covar_;

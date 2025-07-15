@@ -19,7 +19,7 @@ bool vnl_amoeba::default_verbose = false;
 
 vnl_amoeba::vnl_amoeba(vnl_cost_function & f)
   : fptr(&f)
-  , num_evaluations_(0)
+
 {
   verbose = default_verbose;
   maxiter = f.get_number_of_unknowns() * 200;
@@ -88,7 +88,7 @@ struct vnl_amoebaFit : public vnl_amoeba
 };
 
 int
-vnl_amoeba_SimplexCorner::compare(vnl_amoeba_SimplexCorner const & s1, vnl_amoeba_SimplexCorner const & s2)
+vnl_amoeba_SimplexCorner::compare(const vnl_amoeba_SimplexCorner & s1, const vnl_amoeba_SimplexCorner & s2)
 {
   return vnl_math::sgn(s1.fv - s2.fv);
 }
@@ -281,7 +281,6 @@ vnl_amoebaFit::amoeba(vnl_vector<double> & x, std::vector<vnl_amoeba_SimplexCorn
   vnl_amoeba_SimplexCorner expand(n);
   vnl_amoeba_SimplexCorner contract(n);
   vnl_amoeba_SimplexCorner shrink(n);
-  vnl_amoeba_SimplexCorner * next;
 
   vnl_vector<double> vbar(n);
   while (cnt < maxiter)
@@ -300,7 +299,7 @@ vnl_amoebaFit::amoeba(vnl_vector<double> & x, std::vector<vnl_amoeba_SimplexCorn
 
     set_corner_a_plus_bl(&reflect, vbar, simplex[n].v, -1);
 
-    next = &reflect;
+    vnl_amoeba_SimplexCorner * next = &reflect;
     const char * how = "reflect ";
     if (reflect.fv < simplex[n - 1].fv)
     {
@@ -354,7 +353,7 @@ vnl_amoebaFit::amoeba(vnl_vector<double> & x, std::vector<vnl_amoeba_SimplexCorn
     if (verbose)
     {
       char buf[16383];
-      std::sprintf(buf, "iter %5d: %s ", cnt, how);
+      std::snprintf(buf, sizeof(buf), "iter %5d: %s ", cnt, how);
       std::cerr << buf;
       if (verbose == 2)
         std::cerr << "\nFirst corner: " << simplex[0].v;
@@ -440,7 +439,7 @@ public:
   ~vnl_amoeba_LSCF() override = default;
 
   double
-  f(vnl_vector<double> const & x) override
+  f(const vnl_vector<double> & x) override
   {
     ls_->f(x, fx);
     return fx.squared_magnitude();

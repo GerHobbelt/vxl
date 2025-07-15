@@ -24,7 +24,7 @@
 #include "vgui/vgui.h"
 #include "vgui/vgui_utils.h"
 
-vgui_blackbox_tableau::vgui_blackbox_tableau(vgui_tableau_sptr const & t)
+vgui_blackbox_tableau::vgui_blackbox_tableau(const vgui_tableau_sptr & t)
   : vgui_wrapper_tableau(t)
   , recording(false)
 {}
@@ -126,7 +126,7 @@ vgui_blackbox_tableau::handle(const vgui_event & event)
               // Save frames
               {
                 char buf[1024];
-                std::sprintf(buf, "/tmp/vgui_blackbox_tableau.%03d.ppm", frame_number);
+                std::snprintf(buf, sizeof(buf), "/tmp/vgui_blackbox_tableau.%03d.ppm", frame_number);
                 if (do_save)
                   vgui_utils::dump_colour_buffer(buf);
                 if (old_e)

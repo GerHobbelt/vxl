@@ -42,7 +42,7 @@ public:
   {}
 
   void
-  init(vnl_vector<double> const & x0, vnl_vector<double> const & dx)
+  init(const vnl_vector<double> & x0, const vnl_vector<double> & dx)
   {
     x0_ = x0;
     dx_ = dx;
@@ -108,7 +108,9 @@ vnl_powell::minimize(vnl_vector<double> & p)
       double xx = initial_step_;
       double bx;
       {
-        double fa, fxx, fb;
+        double fa;
+        double fxx;
+        double fb;
         vnl_bracket_minimum(f1d, ax, xx, bx, fa, fxx, fb);
       }
       brent.set_x_tolerance(linmin_xtol_);
@@ -165,7 +167,9 @@ vnl_powell::minimize(vnl_vector<double> & p)
         double xx = 1.0;
         double bx;
         {
-          double fa, fxx, fb;
+          double fa;
+          double fxx;
+          double fb;
           vnl_bracket_minimum(f1d, ax, xx, bx, fa, fxx, fb);
         }
         brent.set_x_tolerance(linmin_xtol_);

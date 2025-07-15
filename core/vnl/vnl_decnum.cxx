@@ -12,13 +12,13 @@
 // * If the mantissa contains a decimal point, it is ignored (but the exponent is adapted accordingly).
 // Alternatively, the input might also be "NaN", "Inf", "+Inf", or "-Inf".
 // See also operator>>(std::istream& s, vnl_decnum& r).
-vnl_decnum::vnl_decnum(std::string const & r)
+vnl_decnum::vnl_decnum(const std::string & r)
   : sign_('+')
   , data_("")
-  , exp_(0L)
+
 {
   long exp = 0L;
-  char const * p = r.c_str();
+  const char * p = r.c_str();
   while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r')
     ++p;
   if (*p == '-')
@@ -78,7 +78,7 @@ vnl_decnum::vnl_decnum(std::string const & r)
 vnl_decnum::vnl_decnum(unsigned long r)
   : sign_('+')
   , data_("")
-  , exp_(0L)
+
 {
   if (r == 0)
     sign_ = ' ';
@@ -145,7 +145,7 @@ vnl_decnum::operator unsigned long() const
     l *= 10;
     if (i < long(data_.length()))
       l += (data_.c_str()[i] - '0');
-  }         // might overflow!!!
+  } // might overflow!!!
   return l; // forget the sign
 }
 
@@ -179,7 +179,7 @@ vnl_decnum::operator unsigned int() const
     l *= 10;
     if (i < long(data_.length()))
       l += (data_.c_str()[i] - '0');
-  }         // might overflow!!!
+  } // might overflow!!!
   return l; // forget the sign
 }
 
@@ -202,7 +202,7 @@ vnl_decnum::operator int() const
 }
 
 bool
-vnl_decnum::operator==(vnl_decnum const & r) const
+vnl_decnum::operator==(const vnl_decnum & r) const
 {
   // quick return if exponents are identical or signs are different:
   if (sign_ != r.sign())
@@ -232,12 +232,15 @@ vnl_decnum::operator==(vnl_decnum const & r) const
 // The arguments should consist of digits only (interpreted as mantissas with the same exponent).
 // The shorter of the two arguments is implicitly zero-padded.
 bool
-vnl_decnum::comp(std::string const & a, std::string const & b)
+vnl_decnum::comp(const std::string & a, const std::string & b)
 {
 #ifdef DEBUG
   std::cerr << "Entering vnl_decnum::comp with " << a << " and " << b << '\n';
 #endif
-  int i, na = int(a.length()), nb = int(b.length()), nc = na < nb ? na : nb;
+  int i;
+  int na = int(a.length());
+  int nb = int(b.length());
+  int nc = na < nb ? na : nb;
   for (i = 0; i < nc; ++i)
   {
     if (a.c_str()[i] < b.c_str()[i])
@@ -254,7 +257,7 @@ vnl_decnum::comp(std::string const & a, std::string const & b)
 }
 
 bool
-vnl_decnum::operator<(vnl_decnum const & r) const
+vnl_decnum::operator<(const vnl_decnum & r) const
 {
 #ifdef DEBUG
   std::cerr << "Entering vnl_decnum::operator< with " << data_ << " and " << r.data() << '\n';
@@ -291,13 +294,15 @@ vnl_decnum::operator<(vnl_decnum const & r) const
 // Both arguments should consist of digits only.
 // The third argument will be the exponent of the result.
 vnl_decnum
-vnl_decnum::plus(std::string const & a, std::string const & b, long exp)
+vnl_decnum::plus(const std::string & a, const std::string & b, long exp)
 {
 #ifdef DEBUG
   std::cerr << "Entering vnl_decnum::plus with " << a << " and " << b << '\n';
 #endif
   std::string result = "";
-  int na = int(a.length()), nb = int(b.length()), carry = 0;
+  int na = int(a.length());
+  int nb = int(b.length());
+  int carry = 0;
   for (--na, --nb; na >= 0 && nb >= 0; --na, --nb)
   {
     char c = a.c_str()[na] + (b.c_str()[nb] - '0') + carry;
@@ -335,13 +340,15 @@ vnl_decnum::plus(std::string const & a, std::string const & b, long exp)
 // and the first one should be numerically larger than the second one.
 // The third argument will be the exponent of the result.
 vnl_decnum
-vnl_decnum::minus(std::string const & a, std::string const & b, long exp)
+vnl_decnum::minus(const std::string & a, const std::string & b, long exp)
 {
 #ifdef DEBUG
   std::cerr << "Entering vnl_decnum::minus with " << a << " and " << b << '\n';
 #endif
   std::string result = "";
-  int na = int(a.length()), nb = int(b.length()), carry = 0;
+  int na = int(a.length());
+  int nb = int(b.length());
+  int carry = 0;
   assert(na >= nb);
   for (--na, --nb; na >= 0 && nb >= 0; --na, --nb)
   {
@@ -370,7 +377,7 @@ vnl_decnum::minus(std::string const & a, std::string const & b, long exp)
 }
 
 vnl_decnum
-vnl_decnum::operator+(vnl_decnum const & r) const
+vnl_decnum::operator+(const vnl_decnum & r) const
 {
 #ifdef DEBUG
   std::cerr << "Entering vnl_decnum::operator+ with " << sign_ << data_ << 'e' << exp_ << " and " << r.sign()
@@ -420,13 +427,15 @@ vnl_decnum::operator+(vnl_decnum const & r) const
 // The first argument should consist of digits only;
 // the second argument should be a single digit.
 std::string
-vnl_decnum::mult(std::string const & a, char b)
+vnl_decnum::mult(const std::string & a, char b)
 {
 #ifdef DEBUG
   std::cerr << "Entering vnl_decnum::mult with " << a << " and " << b << '\n';
 #endif
   std::string result = "";
-  int na = int(a.length()), carry = 0, bb = b - '0';
+  int na = int(a.length());
+  int carry = 0;
+  int bb = b - '0';
   assert(bb >= 0 && bb <= 9);
   for (--na; na >= 0; --na)
   {
@@ -441,7 +450,8 @@ vnl_decnum::mult(std::string const & a, char b)
   return result;
 }
 
-vnl_decnum vnl_decnum::operator*(vnl_decnum const & r) const
+vnl_decnum
+vnl_decnum::operator*(const vnl_decnum & r) const
 {
 #ifdef DEBUG
   std::cerr << "Entering vnl_decnum::operator* with " << sign_ << data_ << 'e' << exp_ << " and " << r.sign()
@@ -452,8 +462,9 @@ vnl_decnum vnl_decnum::operator*(vnl_decnum const & r) const
   else if (r.data() == "NaN")
     return r;
   else if (data_ == "Inf" || r.data() == "Inf")
-    return sign_ == r.sign() ? vnl_decnum("+Inf")
-                             : (sign_ == ' ' || r.sign() == ' ') ? vnl_decnum("NaN") : vnl_decnum("-Inf");
+    return sign_ == r.sign()                   ? vnl_decnum("+Inf")
+           : (sign_ == ' ' || r.sign() == ' ') ? vnl_decnum("NaN")
+                                               : vnl_decnum("-Inf");
 
   int sign = (sign_ == ' ' ? 0 : sign_ == '-' ? -1 : 1) * (r.sign() == ' ' ? 0 : r.sign() == '-' ? -1 : 1);
   vnl_decnum result(0L);
@@ -476,12 +487,13 @@ vnl_decnum vnl_decnum::operator*(vnl_decnum const & r) const
 // The arguments should consist of digits only
 // and the first one should be numerically larger than the second one.
 std::string
-vnl_decnum::div(std::string const & a, std::string & b)
+vnl_decnum::div(const std::string & a, std::string & b)
 {
 #ifdef DEBUG
   std::cerr << "Entering vnl_decnum::div with " << a << " and " << b << '\n';
 #endif
-  int na = int(a.length()), nb = int(b.length());
+  int na = int(a.length());
+  int nb = int(b.length());
   assert(na >= nb);
   if (comp(a, b))
     ++nb;
@@ -508,7 +520,7 @@ vnl_decnum::div(std::string const & a, std::string & b)
 }
 
 vnl_decnum
-vnl_decnum::operator/(vnl_decnum const & r) const
+vnl_decnum::operator/(const vnl_decnum & r) const
 {
 #ifdef DEBUG
   std::cerr << "Entering vnl_decnum::operator/ with " << sign_ << data_ << 'e' << exp_ << " and " << r.sign()
@@ -531,8 +543,10 @@ vnl_decnum::operator/(vnl_decnum const & r) const
     return *this;
   if (operator==(r))
     return vnl_decnum('+', "1", 0L);
-  std::string a = data_, b = r.data();
-  int na = int(a.length()), nb = int(b.length());
+  std::string a = data_;
+  std::string b = r.data();
+  int na = int(a.length());
+  int nb = int(b.length());
   vnl_decnum result(0L);
   while (na > nb || (na == nb && !comp(a, b)))
   {
@@ -552,7 +566,7 @@ vnl_decnum::operator/(vnl_decnum const & r) const
 }
 
 vnl_decnum
-vnl_decnum::operator%(vnl_decnum const & r) const
+vnl_decnum::operator%(const vnl_decnum & r) const
 {
 #ifdef DEBUG
   std::cerr << "Entering vnl_decnum::operator% with " << sign_ << data_ << 'e' << exp_ << " and " << r.sign()
@@ -573,8 +587,10 @@ vnl_decnum::operator%(vnl_decnum const & r) const
     return vnl_decnum("0");
   if (operator==(r))
     return vnl_decnum("0");
-  std::string a = data_, b = r.data();
-  int na = int(a.length()), nb = int(b.length());
+  std::string a = data_;
+  std::string b = r.data();
+  int na = int(a.length());
+  int nb = int(b.length());
   while (na > nb || (na == nb && !comp(a, b)))
   {
     std::string c = b;

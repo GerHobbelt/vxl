@@ -14,7 +14,8 @@
 static void
 normalize(vnl_vector<double> & a, vnl_vector<double> & b)
 {
-  double x_mean = 0.0, y_mean = 0.0;
+  double x_mean = 0.0;
+  double y_mean = 0.0;
   unsigned int num_pts = b.size() / 2;
   for (unsigned int i = 0; i < num_pts; ++i)
   {
@@ -106,18 +107,22 @@ camera_diff(const vnl_vector<double> & a1, const vnl_vector<double> & a2)
 class bundle_2d : public vnl_sparse_lst_sqr_function
 {
 public:
-  bundle_2d(unsigned int num_cam, unsigned int num_pts, vnl_vector<double> data,
-            const std::vector<std::vector<bool>> &xmask,
-            UseGradient g = use_gradient, UseWeights w = no_weights)
-      : vnl_sparse_lst_sqr_function(num_cam, 3, num_pts, 2, 0, xmask, 1, g, w),
-        data_(std::move(data)) {}
+  bundle_2d(unsigned int num_cam,
+            unsigned int num_pts,
+            vnl_vector<double> data,
+            const std::vector<std::vector<bool>> & xmask,
+            UseGradient g = use_gradient,
+            UseWeights w = no_weights)
+    : vnl_sparse_lst_sqr_function(num_cam, 3, num_pts, 2, 0, xmask, 1, g, w)
+    , data_(std::move(data))
+  {}
 
   void
   fij(int i,
       int j,
-      vnl_vector<double> const & ai,
-      vnl_vector<double> const & bj,
-      vnl_vector<double> const & /*c*/,
+      const vnl_vector<double> & ai,
+      const vnl_vector<double> & bj,
+      const vnl_vector<double> & /*c*/,
       vnl_vector<double> & fxij) override
   {
     double sa = std::sin(ai[0]);
@@ -128,9 +133,9 @@ public:
   void
   jac_Aij(unsigned int /*i*/,
           unsigned int /*j*/,
-          vnl_vector<double> const & ai,
-          vnl_vector<double> const & bj,
-          vnl_vector<double> const & /*c*/,
+          const vnl_vector<double> & ai,
+          const vnl_vector<double> & bj,
+          const vnl_vector<double> & /*c*/,
           vnl_matrix<double> & Aij) override
   {
     double sa = std::sin(ai[0]);
@@ -145,9 +150,9 @@ public:
   void
   jac_Bij(unsigned int /*i*/,
           unsigned int /*j*/,
-          vnl_vector<double> const & ai,
-          vnl_vector<double> const & bj,
-          vnl_vector<double> const & /*c*/,
+          const vnl_vector<double> & ai,
+          const vnl_vector<double> & bj,
+          const vnl_vector<double> & /*c*/,
           vnl_matrix<double> & Bij) override
   {
     double sa = std::sin(ai[0]);
@@ -160,10 +165,10 @@ public:
 
   void
   trace(int /*iteration*/,
-        vnl_vector<double> const & /*a*/,
-        vnl_vector<double> const & /*b*/,
-        vnl_vector<double> const & /*c*/,
-        vnl_vector<double> const & /*e*/) override
+        const vnl_vector<double> & /*a*/,
+        const vnl_vector<double> & /*b*/,
+        const vnl_vector<double> & /*c*/,
+        const vnl_vector<double> & /*e*/) override
   {
     // std::cout << "trace "<<iteration<< " a: "<<a<<std::endl;
   }
@@ -184,7 +189,9 @@ test_prob1()
                             2.0,  12.0, 4.0,  12.0, -4.0, 14.0, -2.0, 14.0, 0.0,  14.0, 2.0,  14.0, 4.0,
                             14.0, -4.0, 16.0, -2.0, 16.0, 0.0,  16.0, 2.0,  16.0, 4.0,  16.0 };
 
-  vnl_vector<double> a(a_data, 12), b(b_data, 50), proj(100, 0.0);
+  vnl_vector<double> a(a_data, 12);
+  vnl_vector<double> b(b_data, 50);
+  vnl_vector<double> proj(100, 0.0);
   vnl_vector<double> c;
 
   // create a generator function with ideal data and zeros for all projections
@@ -204,7 +211,9 @@ test_prob1()
   // test 2D bundle adjustment with all data and no noise
   {
     // initial conditions (all points at origin)
-    vnl_vector<double> pa(12, 0.0), pb(50, 0.0), pc;
+    vnl_vector<double> pa(12, 0.0);
+    vnl_vector<double> pb(50, 0.0);
+    vnl_vector<double> pc;
     pa[2] = pa[5] = pa[8] = pa[11] = 10;
     pa[4] = 5;
     pa[7] = -5;
@@ -265,7 +274,9 @@ test_prob1()
   // test 2D bundle adjustment with missing data and no noise
   {
     // initial conditions (all points at origin)
-    vnl_vector<double> pa(12, 0.0), pb(50, 0.0), pc;
+    vnl_vector<double> pa(12, 0.0);
+    vnl_vector<double> pb(50, 0.0);
+    vnl_vector<double> pc;
     pa[2] = pa[5] = pa[8] = pa[11] = 10;
     pa[4] = 5;
     pa[7] = -5;
@@ -299,7 +310,9 @@ test_prob1()
   // test 2D bundle adjustment with missing data and uniform noise
   {
     // initial conditions (all points at origin)
-    vnl_vector<double> pa(12, 0.0), pb(50, 0.0), pc;
+    vnl_vector<double> pa(12, 0.0);
+    vnl_vector<double> pb(50, 0.0);
+    vnl_vector<double> pc;
     pa[2] = pa[5] = pa[8] = pa[11] = 10;
     pa[4] = 5;
     pa[7] = -5;
@@ -339,19 +352,21 @@ test_prob1()
 class bundle_2d_shared : public vnl_sparse_lst_sqr_function
 {
 public:
-  bundle_2d_shared(unsigned int num_cam, unsigned int num_pts,
+  bundle_2d_shared(unsigned int num_cam,
+                   unsigned int num_pts,
                    vnl_vector<double> data,
-                   const std::vector<std::vector<bool>> &xmask,
+                   const std::vector<std::vector<bool>> & xmask,
                    UseGradient g = use_gradient)
-      : vnl_sparse_lst_sqr_function(num_cam, 3, num_pts, 2, 1, xmask, 1, g),
-        data_(std::move(data)) {}
+    : vnl_sparse_lst_sqr_function(num_cam, 3, num_pts, 2, 1, xmask, 1, g)
+    , data_(std::move(data))
+  {}
 
   void
   fij(int i,
       int j,
-      vnl_vector<double> const & ai,
-      vnl_vector<double> const & bj,
-      vnl_vector<double> const & c,
+      const vnl_vector<double> & ai,
+      const vnl_vector<double> & bj,
+      const vnl_vector<double> & c,
       vnl_vector<double> & fxij) override
   {
     double sa = std::sin(ai[0]);
@@ -363,9 +378,9 @@ public:
   void
   jac_Aij(unsigned int /*i*/,
           unsigned int /*j*/,
-          vnl_vector<double> const & ai,
-          vnl_vector<double> const & bj,
-          vnl_vector<double> const & c,
+          const vnl_vector<double> & ai,
+          const vnl_vector<double> & bj,
+          const vnl_vector<double> & c,
           vnl_matrix<double> & Aij) override
   {
     double sa = std::sin(ai[0]);
@@ -381,9 +396,9 @@ public:
   void
   jac_Bij(unsigned int /*i*/,
           unsigned int /*j*/,
-          vnl_vector<double> const & ai,
-          vnl_vector<double> const & bj,
-          vnl_vector<double> const & c,
+          const vnl_vector<double> & ai,
+          const vnl_vector<double> & bj,
+          const vnl_vector<double> & c,
           vnl_matrix<double> & Bij) override
   {
     double sa = std::sin(ai[0]);
@@ -397,9 +412,9 @@ public:
   void
   jac_Cij(unsigned int /*i*/,
           unsigned int /*j*/,
-          vnl_vector<double> const & ai,
-          vnl_vector<double> const & bj,
-          vnl_vector<double> const & /*c*/,
+          const vnl_vector<double> & ai,
+          const vnl_vector<double> & bj,
+          const vnl_vector<double> & /*c*/,
           vnl_matrix<double> & Cij) override
   {
     double sa = std::sin(ai[0]);
@@ -424,7 +439,10 @@ test_prob2()
                             2.0,  12.0, 4.0,  12.0, -4.0, 14.0, -2.0, 14.0, 0.0,  14.0, 2.0,  14.0, 4.0,
                             14.0, -4.0, 16.0, -2.0, 16.0, 0.0,  16.0, 2.0,  16.0, 4.0,  16.0 };
 
-  vnl_vector<double> a(a_data, 12), b(b_data, 50), c(1, 1.5), proj(100, 0.0);
+  vnl_vector<double> a(a_data, 12);
+  vnl_vector<double> b(b_data, 50);
+  vnl_vector<double> c(1, 1.5);
+  vnl_vector<double> proj(100, 0.0);
 
   // create a generator function with ideal data and zeros for all projections
   // the residuals of this functions are the ideal project points
@@ -439,7 +457,9 @@ test_prob2()
   // test 2D bundle adjustment with all data and no noise
   {
     // initial conditions (all points at origin)
-    vnl_vector<double> pa(12, 0.0), pb(50, 0.0), pc(1, 1.0);
+    vnl_vector<double> pa(12, 0.0);
+    vnl_vector<double> pb(50, 0.0);
+    vnl_vector<double> pc(1, 1.0);
     pa[2] = pa[5] = pa[8] = pa[11] = 10;
     pa[4] = 5;
     pa[7] = -5;
@@ -499,7 +519,9 @@ test_prob2()
   // test 2D bundle adjustment with missing data and no noise
   {
     // initial conditions (all points at origin)
-    vnl_vector<double> pa(12, 0.0), pb(50, 0.0), pc(1, 1.0);
+    vnl_vector<double> pa(12, 0.0);
+    vnl_vector<double> pb(50, 0.0);
+    vnl_vector<double> pc(1, 1.0);
     pa[2] = pa[5] = pa[8] = pa[11] = 10;
     pa[4] = 5;
     pa[7] = -5;
@@ -535,7 +557,9 @@ test_prob2()
   // test 2D bundle adjustment with missing data and uniform noise
   {
     // initial conditions (all points at origin)
-    vnl_vector<double> pa(12, 0.0), pb(50, 0.0), pc(1, 1.0);
+    vnl_vector<double> pa(12, 0.0);
+    vnl_vector<double> pb(50, 0.0);
+    vnl_vector<double> pc(1, 1.0);
     pa[2] = pa[5] = pa[8] = pa[11] = 10;
     pa[4] = 5;
     pa[7] = -5;
@@ -579,7 +603,7 @@ public:
                    const std::vector<std::vector<bool>> & xmask,
                    UseGradient g = use_gradient)
     : bundle_2d(num_cam, num_pts, data, xmask, g, use_weights)
-    , scale2_(1.0)
+
   {}
 
   void
@@ -591,10 +615,10 @@ public:
   void
   compute_weight_ij(int i,
                     int j,
-                    vnl_vector<double> const & /*ai*/,
-                    vnl_vector<double> const & /*bj*/,
-                    vnl_vector<double> const & /*c*/,
-                    vnl_vector<double> const & fij,
+                    const vnl_vector<double> & /*ai*/,
+                    const vnl_vector<double> & /*bj*/,
+                    const vnl_vector<double> & /*c*/,
+                    const vnl_vector<double> & fij,
                     double & weight) override
   {
     int k = residual_indices_(i, j);
@@ -628,15 +652,15 @@ public:
 
   void
   trace(int /*iteration*/,
-        vnl_vector<double> const & /*a*/,
-        vnl_vector<double> const & /*b*/,
-        vnl_vector<double> const & /*c*/,
-        vnl_vector<double> const & /*e*/) override
+        const vnl_vector<double> & /*a*/,
+        const vnl_vector<double> & /*b*/,
+        const vnl_vector<double> & /*c*/,
+        const vnl_vector<double> & /*e*/) override
   {
     // std::cout << "trace "<<iteration<< " a: "<<a<<std::endl;
   }
 
-  double scale2_;
+  double scale2_{ 1.0 };
 };
 
 
@@ -652,12 +676,16 @@ test_prob3()
                             2.0,  12.0, 4.0,  12.0, -4.0, 14.0, -2.0, 14.0, 0.0,  14.0, 2.0,  14.0, 4.0,
                             14.0, -4.0, 16.0, -2.0, 16.0, 0.0,  16.0, 2.0,  16.0, 4.0,  16.0 };
 
-  vnl_vector<double> a(a_data, 12), b(b_data, 50), proj(100, 0.0);
+  vnl_vector<double> a(a_data, 12);
+  vnl_vector<double> b(b_data, 50);
+  vnl_vector<double> proj(100, 0.0);
   vnl_vector<double> c;
 
   // initial perturbed parameters, add random gaussian noise
-  vnl_vector<double> init_a(a_data, 12), init_b(b_data, 50);
-  double sigma_pos = 1.0, sigma_ang = 0.1;
+  vnl_vector<double> init_a(a_data, 12);
+  vnl_vector<double> init_b(b_data, 50);
+  double sigma_pos = 1.0;
+  double sigma_ang = 0.1;
   vnl_random rnd(1234);
   for (unsigned i = 0; i < init_a.size() / 3; ++i)
   {
@@ -679,8 +707,12 @@ test_prob3()
     bundle_2d_robust func(4, 25, proj, mask, vnl_sparse_lst_sqr_function::use_gradient);
     func.set_scale(0.3);
 
-    vnl_matrix<double> A1(1, 3), A2(1, 3), B1(1, 2), B2(1, 2);
-    vnl_vector<double> ai(3, 0.0), bj(2, 0.0);
+    vnl_matrix<double> A1(1, 3);
+    vnl_matrix<double> A2(1, 3);
+    vnl_matrix<double> B1(1, 2);
+    vnl_matrix<double> B2(1, 2);
+    vnl_vector<double> ai(3, 0.0);
+    vnl_vector<double> bj(2, 0.0);
     vnl_vector<double> fxij(1, 0.0);
     ai[0] = 0.1;
     ai[1] = -0.0;
@@ -710,7 +742,9 @@ test_prob3()
   // test 2D bundle adjustment with all data and no noise
   {
     // initial conditions (all points at origin)
-    vnl_vector<double> pa(init_a), pb(init_b), pc;
+    vnl_vector<double> pa(init_a);
+    vnl_vector<double> pb(init_b);
+    vnl_vector<double> pc;
 
     bundle_2d_robust my_func(4, 25, proj, mask, vnl_sparse_lst_sqr_function::use_gradient);
     my_func.set_scale(1.0);
@@ -771,7 +805,9 @@ test_prob3()
   // test 2D bundle adjustment with missing data and no noise
   {
     // initial conditions (all points at origin)
-    vnl_vector<double> pa(init_a), pb(init_b), pc;
+    vnl_vector<double> pa(init_a);
+    vnl_vector<double> pb(init_b);
+    vnl_vector<double> pc;
 
     bundle_2d_robust my_func(4, 25, proj2, mask, vnl_sparse_lst_sqr_function::use_gradient);
     my_func.set_scale(1.0);
@@ -801,7 +837,9 @@ test_prob3()
   // test 2D bundle adjustment with missing data and uniform noise
   {
     // initial conditions (all points at origin)
-    vnl_vector<double> pa(init_a), pb(init_b), pc;
+    vnl_vector<double> pa(init_a);
+    vnl_vector<double> pb(init_b);
+    vnl_vector<double> pc;
 
     bundle_2d_robust my_func(4, 25, proj2, mask, vnl_sparse_lst_sqr_function::use_gradient);
     my_func.set_scale(1.0);

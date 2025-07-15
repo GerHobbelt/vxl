@@ -107,13 +107,14 @@ public:
     : vnl_cost_function(2)
   {}
   double
-  f(vnl_vector<double> const & x) override
+  f(const vnl_vector<double> & x) override
   {
-    double u = x[0] - x[1] * x[1], v = x[1] - 1;
+    double u = x[0] - x[1] * x[1];
+    double v = x[1] - 1;
     return u * u + v * v + 1;
   }
   void
-  gradf(vnl_vector<double> const & x, vnl_vector<double> & g) override
+  gradf(const vnl_vector<double> & x, vnl_vector<double> & g) override
   {
     g[0] = 2 * x[0] - 2 * x[1] * x[1];
     g[1] = 4 * x[1] * x[1] * x[1] - 4 * x[0] * x[1] + 2 * x[1] - 2;
@@ -128,12 +129,12 @@ public:
     : vnl_cost_function(1)
   {}
   double
-  f(vnl_vector<double> const &) override
+  f(const vnl_vector<double> &) override
   {
     return 0;
   }
   void
-  gradf(vnl_vector<double> const &, vnl_vector<double> & gradient) override
+  gradf(const vnl_vector<double> &, vnl_vector<double> & gradient) override
   {
     gradient[0] = 1;
   }
@@ -215,7 +216,7 @@ public:
     : vnl_least_squares_function(2, 2, no_gradient)
   {}
   void
-  f(vnl_vector<double> const & x, vnl_vector<double> & fx) override
+  f(const vnl_vector<double> & x, vnl_vector<double> & fx) override
   {
     fx[0] = x[0] - x[1] * x[1];
     fx[1] = x[1] - 1;
@@ -240,8 +241,13 @@ test_discrete_diff()
 static void
 test_generalized_schur()
 {
-  vnl_matrix<float> A(4, 4, 0.0f), B(4, 4, 0.0f), L(4, 4, 1.0f), R(4, 4, 1.0f);
-  vnl_vector<float> ar(4, 0.0f), ai(4, 0.0f), b(4, 0.0f);
+  vnl_matrix<float> A(4, 4, 0.0f);
+  vnl_matrix<float> B(4, 4, 0.0f);
+  vnl_matrix<float> L(4, 4, 1.0f);
+  vnl_matrix<float> R(4, 4, 1.0f);
+  vnl_vector<float> ar(4, 0.0f);
+  vnl_vector<float> ai(4, 0.0f);
+  vnl_vector<float> b(4, 0.0f);
   bool r = vnl_generalized_schur(&A, &B, &ar, &ai, &b, &L, &R);
   TEST("vnl_generalized_schur", r, true);
 }

@@ -27,7 +27,7 @@
 #  include "vil/vil_rgb.h"
 #endif
 
-char const * vil_pnm_format_tag = "pnm";
+const char * vil_pnm_format_tag = "pnm";
 
 static inline bool
 iseol(int c)
@@ -65,7 +65,7 @@ vil_pnm_file_format::make_output_image(vil_stream * vs,
   return new vil_pnm_image(vs, ni, nj, nplanes, format);
 }
 
-char const *
+const char *
 vil_pnm_file_format::tag() const
 {
   return vil_pnm_format_tag;
@@ -81,7 +81,7 @@ vil_pnm_image::vil_pnm_image(vil_stream * vs)
 }
 
 bool
-vil_pnm_image::get_property(char const * tag, void * value) const
+vil_pnm_image::get_property(const char * tag, void * value) const
 {
   if (std::strcmp(vil_property_quantisation_depth, tag) == 0)
   {
@@ -93,7 +93,7 @@ vil_pnm_image::get_property(char const * tag, void * value) const
   return false;
 }
 
-char const *
+const char *
 vil_pnm_image::file_format() const
 {
   return vil_pnm_format_tag;
@@ -142,10 +142,7 @@ vil_pnm_image::vil_pnm_image(vil_stream * vs, unsigned ni, unsigned nj, unsigned
   write_header();
 }
 
-vil_pnm_image::~vil_pnm_image()
-{
-  vs_->unref();
-}
+vil_pnm_image::~vil_pnm_image() { vs_->unref(); }
 
 // Skip over spaces and comments; temp is the current vs character
 static void
@@ -311,11 +308,18 @@ vil_pnm_image::write_header()
   vs_->seek(0L);
 
   char buf[1024];
-  std::sprintf(buf, "P%d\n#vil pnm image, #c=%u, bpc=%u\n%u %u\n", magic_, ncomponents_, bits_per_component_, ni_, nj_);
+  std::snprintf(buf,
+                sizeof(buf),
+                "P%d\n#vil pnm image, #c=%u, bpc=%u\n%u %u\n",
+                magic_,
+                ncomponents_,
+                bits_per_component_,
+                ni_,
+                nj_);
   vs_->write(buf, std::strlen(buf));
   if (magic_ != 1 && magic_ != 4)
   {
-    std::sprintf(buf, "%lu\n", maxval_);
+    std::snprintf(buf, sizeof(buf), "%lu\n", maxval_);
     vs_->write(buf, std::strlen(buf));
   }
   start_of_data_ = vs_->tell();
@@ -528,7 +532,7 @@ static void
 operator<<(vil_stream & vs, int a)
 {
   char buf[128];
-  std::sprintf(buf, " %d\n", a);
+  std::snprintf(buf, sizeof(buf), " %d\n", a);
   vs.write(buf, std::strlen(buf));
 }
 
