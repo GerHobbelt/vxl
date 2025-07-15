@@ -32,8 +32,9 @@
 class vpgl_nitf_rational_camera : public vpgl_rational_camera<double>
 {
  public:
-
-  enum geopt_coord { LAT, LON };
+  // note: to be consistent with point coords (x, y)
+  enum geopt_coord { LON, LAT };
+  enum igeolo_order {UL, UR, LR, LL};
   vpgl_nitf_rational_camera() = default;
 
   //: Construct from a nitf image file
@@ -43,6 +44,10 @@ class vpgl_nitf_rational_camera : public vpgl_rational_camera<double>
   //: Construct from a nitf image
   vpgl_nitf_rational_camera(vil_nitf2_image* nift_image,
                             bool verbose = false);
+
+  //: Read from nitf
+  bool read(std::string const& nitf_image, bool verbose = false);
+  bool read(vil_nitf2_image* nitf_image, bool verbose = false);
 
   std::string rational_extension_type() const {return nitf_rational_type_;}
 
@@ -59,9 +64,14 @@ class vpgl_nitf_rational_camera : public vpgl_rational_camera<double>
              vpgl_rational_order output_order =
                  vpgl_rational_order::VXL) const override;
 
-private:
-  // internal functions
-  bool init(vil_nitf2_image* nitf_image, bool verbose);
+  // extract lat-lon pairs in decimal degreesfrom the igeolo string
+  static int geostr_to_latlon(const char * str, double * lat, double * lon);
+
+  // eliminate pointer-based interface
+  //                                               igeolo                        lon      lat
+  static void geostr_to_latlon_v2(std::string const& str, std::vector<std::pair<double, double> >& coords);
+
+ private:
 
   // data members
   std::string nitf_rational_type_;
