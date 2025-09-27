@@ -267,7 +267,7 @@ class boxm2_vecf_fit_orbit{
   // e.g. points along the inferior margin
   std::map<mids, std::vector<vgl_point_3d<double> > > orbit_data_;
 
-  //: the current paramter estimates
+  //: the current parameter estimates
   boxm2_vecf_orbit_params left_params_;
   boxm2_vecf_orbit_params right_params_;
 

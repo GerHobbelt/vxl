@@ -241,7 +241,7 @@ protected:
   // intrinsic params and the desired end-point
   inline double compute_error(double k0, double len);
 
-  //: Return end point of the Euler spiral with the given intrinsic paramters
+  //: Return end point of the Euler spiral with the given intrinsic parameters
   vgl_point_2d< double > compute_end_pt( double k0, double gamma, double len, bool normalized = false) const;
 
   //: store number of evaluations of the function compute_end_pt(...) - the most expensive function

@@ -318,7 +318,7 @@ compute_error(double k0, double len){
 }
 
 
-//: Return end point of the Euler spiral with the given intrinsic paramters
+//: Return end point of the Euler spiral with the given intrinsic parameters
 vgl_point_2d< double > bvgl_eulerspiral::
 compute_end_pt( double k0, double gamma, double len, bool normalized ) const {
   // increment num_evaluations

@@ -347,7 +347,7 @@ vpgl_rational_camera<T>::project(vgl_point_3d<T> world_point) const
 //--------------------------------------
 // Output
 
-// write camera parameters to output stream as PVL (paramter value language)
+// write camera parameters to output stream as PVL (parameter value language)
 template <class T>
 void
 vpgl_rational_camera<T>::write_pvl(std::ostream & ostr, vpgl_rational_order output_order) const

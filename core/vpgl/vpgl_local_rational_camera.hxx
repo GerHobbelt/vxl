@@ -80,7 +80,7 @@ vpgl_local_rational_camera<T>::project(const T x, const T y, const T z, T & u, T
 //--------------------------------------
 // Output
 
-// write camera parameters to output stream as PVL (paramter value language)
+// write camera parameters to output stream as PVL (parameter value language)
 template <class T>
 void
 vpgl_local_rational_camera<T>::write_pvl(std::ostream & ostr, vpgl_rational_order output_order) const

@@ -80,7 +80,7 @@ public:
   void
   project(const T x, const T y, const T z, T & u, T & v) const override;
 
-  // write PVL (paramter value language) to output stream
+  // write PVL (parameter value language) to output stream
   void
   write_pvl(std::ostream & s, vpgl_rational_order output_order) const override;
 

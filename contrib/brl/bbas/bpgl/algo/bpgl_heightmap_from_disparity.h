@@ -144,7 +144,7 @@ class bpgl_heightmap
     vgl_box_3d<T> heightmap_bounds_;
     T ground_sample_distance_;
 
-    // pointset->heightmap gridding paramters:
+    // pointset->heightmap gridding parameters:
     // expected number of neighbors (between min/max neighbors) within some distance
     // (neighbor_dist_factor_ * ground_sample_distance_) of each heightmap pixel
     unsigned min_neighbors_ = 3;

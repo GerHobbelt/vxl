@@ -44,7 +44,7 @@ bool boxm2_cpp_los_visibility_process_cons(bprb_func_process& pro)
     input_types_[5] = "float";  //x1
     input_types_[6] = "float";  //y1
     input_types_[7] = "float";  //z1
-    input_types_[8] = "float";  //paramter to move away from the points.
+    input_types_[8] = "float";  //parameter to move away from the points.
     // process has 1 output:
     std::vector<std::string>  output_types_(n_outputs_);
     output_types_[0] = "float"; //seg_len
