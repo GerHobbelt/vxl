@@ -56,7 +56,7 @@
 #include <bpgl/algo/bpgl_surface_type.h>
 #include <bsta/bsta_histogram.h>
 #include "bsgm_disparity_estimator.h" // for disparity_estimator_params
-
+#include <vul/vul_timer.h>
 
 struct pairwise_params
 {
@@ -148,6 +148,10 @@ struct pairwise_params
   int shadow_high_ = 150;
 
   int disparity_search_margin_ = 100;
+
+  bool fast_heightmaps_ = false;
+
+  bool print_dsm_timing_ = false;
 };
 
 
@@ -449,17 +453,24 @@ class bsgm_prob_pairwise_dsm
   bool process(bool with_consistency_check = true, bool knn_consistency = true,
                bool compute_fwd_rev_ptsets_hmaps = true)
   {
-    //vul_timer t, total;
-    //std::stringstream ss;
+    // for time measurement
+    vul_timer t;
+    float t_rect, t_disp_fwd, t_hmap_fwd, t_disp_rev, t_hmap_rev, t_prob;
+      
     // check if not in window mode
     bool window_mode = !target_window_.is_empty();
     if (window_mode) {
       throw std::runtime_error("Can't apply window processing using this process method");
       return false;
     }
+    float d1=0.0, h1=0.0, d2=0.0, h2=0.0, tp = 0.0;
     // rectification
     this->rectify();
 
+    if(params_.print_dsm_timing_){
+      t_rect = t.real(); t.mark();
+    }
+      
     // determine disparity range for individual pairs
     // depends on view angle separation and max_height_
     // used to save memory when a large height range must be searched
@@ -476,24 +487,47 @@ class bsgm_prob_pairwise_dsm
     // compute forward disparity & height
     this->compute_disparity_fwd();
 
+    if(params_.print_dsm_timing_){
+      t_disp_fwd = t.real(); t.mark();
+    }
+
+
     this->compute_height_fwd(compute_fwd_rev_ptsets_hmaps);
 
+    if(params_.print_dsm_timing_){
+      t_hmap_fwd = t.real(); t.mark();
+    }
     // consistency check & probabilistic analysis
 
     if (with_consistency_check) {
       this->compute_disparity_rev();
 
+      if(params_.print_dsm_timing_){
+      t_disp_rev = t.real(); t.mark();
+      }
+
       this->compute_height_rev(compute_fwd_rev_ptsets_hmaps);
 
+      if(params_.print_dsm_timing_){
+        t_hmap_rev = t.real(); t.mark();
 
+      }
       if (knn_consistency) {
         if (!compute_prob(true))  // true -> compute prob heightmap
            return false;
+        if(params_.print_dsm_timing_){
+          t_prob = t.real(); t.mark();
+    }
       } else {
         this->compute_xyz_prob(true);  // true -> compute prob heightmap
       }
     } else this->compute_ptset();
 
+    if(params_.print_dsm_timing_){
+      std::cout << "rect, disp_fwd, hmap_fwd, disp_rev, hmap_rev, prob " <<
+        t_rect << ' ' << t_disp_fwd << ' ' << t_hmap_fwd << ' '<< t_disp_rev << ' ' 
+                << t_hmap_rev << ' ' << t_prob << std::endl;
+   }
     return true;
   }
 

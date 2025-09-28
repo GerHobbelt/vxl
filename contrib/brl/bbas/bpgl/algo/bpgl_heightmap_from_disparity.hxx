@@ -10,7 +10,8 @@
 #include "bpgl_3d_from_disparity.h"
 #include "bpgl_heightmap_from_disparity.h"
 #include "bpgl_gridding.h"
-
+#include "bpgl_fast_gridding.h"
+#include <vul/vul_timer.h>
 
 // main convenience function - transform disparity to heightmap
 template<class T, class CAM_T>
@@ -158,6 +159,16 @@ void bpgl_heightmap<T>::heightmap_from_pointset(
       ptset, heightmap_output, scalar_output, false);
 }
 
+template<class T>
+std::pair<size_t, size_t>  bpgl_heightmap<T>::heightmap_dimensions(){
+  // image upper left & size
+  // image must contain all samples within bounds, inclusive
+  vgl_point_2d<T> upper_left(heightmap_bounds_.min_x(), heightmap_bounds_.max_y());
+  size_t ni = static_cast<size_t>(std::floor(heightmap_bounds_.width() / ground_sample_distance_ + 1));
+  size_t nj = static_cast<size_t>(std::floor(heightmap_bounds_.height() / ground_sample_distance_ + 1));
+  return std::pair<size_t, size_t>(ni, nj);
+}
+
 // private function, scalar usage controlled by "ignore_scalar"
 template<class T>
 void bpgl_heightmap<T>::_heightmap_from_pointset(
@@ -234,6 +245,73 @@ void bpgl_heightmap<T>::_heightmap_from_pointset(
   } // end scalar interpolation
 
 }
+// accelerated heightmap computation
+template<class T>
+void bpgl_heightmap<T>::fast_heightmap_from_pointset(
+    const vgl_pointset_3d<T>& ptset,
+    vil_image_view<T>& heightmap_output,
+    vil_image_view<T>& scalar_output,
+    vil_image_view<T>& radial_std_dev)
+{
+  // check pointset sufficency
+  if (ptset.npts() < min_neighbors_) {
+    throw std::runtime_error("Not enough points in pointset for interpolation");
+  }
+
+  // pointset as vectors
+  std::vector<vgl_point_2d<T> > triangulated_xy;
+  // combined z and prob
+  std::vector<std::pair<T, T> > height_prob_vals;
+  std::vector<T>& probs = ptset.scalars();
+  size_t i = 0;
+  for (const auto& point_3d : ptset.points()) {
+    vgl_point_2d<T> point_2d(point_3d.x(), point_3d.y());
+    triangulated_xy.emplace_back(point_2d);
+    height_prob_vals.emplace_back(point_3d.z(), probs[i++]);
+  }
+  vgl_point_2d<T> upper_left(heightmap_bounds_.min_x(), heightmap_bounds_.max_y());
+
+  std::pair<size_t, size_t> dims = heightmap_dimensions();
+  size_t ni = dims.first, nj = dims.second;
+
+  // maximum neighbor distance
+  T max_dist = neighbor_dist_factor_ * ground_sample_distance_;
+
+  int nbrhood_radius = int(neighbor_dist_factor_); 
+
+  //=============================
+
+  bpgl_fast_gridding::image_data<T, std::tuple<T, T, T>, std::tuple<vil_image_view<T>, vil_image_view<T>, vil_image_view<T> > >& idat =
+      bpgl_fast_gridding::grid_data_2d_array<T, std::pair<T, T>, std::tuple<T, T, T>, std::tuple<vil_image_view<T>, vil_image_view<T>, vil_image_view<T> > >(
+      triangulated_xy, height_prob_vals,
+      upper_left, ni, nj, ground_sample_distance_,
+      min_neighbors_, max_neighbors_, nbrhood_radius);
+
+  std::tuple<vil_image_view<T>, vil_image_view<T>, vil_image_view<T> > imgs = idat.image_dat_;
+  heightmap_output = std::get<0>(imgs);
+  scalar_output = std::get<1>(imgs);
+  radial_std_dev = std::get<2>(imgs);
+  //=============================
+  // bounds check to remove outliers
+  T min_z = heightmap_bounds_.min_z();
+  T max_z = heightmap_bounds_.max_z();
+
+  for (int j=0; j<nj; ++j) {
+    for (int i=0; i<ni; ++i) {
+      if ((heightmap_output(i,j) < min_z) || (heightmap_output(i,j) > max_z)) {
+        heightmap_output(i,j) = NAN;
+      }
+    }
+  }
+  // remove scalar without corresponding height
+  for (int j=0; j<nj; ++j) {
+    for (int i=0; i<ni; ++i) {
+      if (!vnl_math::isfinite(heightmap_output(i,j))) {
+        scalar_output(i,j) = NAN;
+      }
+    }
+  }
+}
 
 template<class T>
 void bpgl_heightmap<T>::heightmap_from_pointset(
@@ -241,12 +319,13 @@ void bpgl_heightmap<T>::heightmap_from_pointset(
         vil_image_view<T>& heightmap_output,
         vil_image_view<T>& scalar_output,
         vil_image_view<T>& radial_std_dev){
-
+  vul_timer t;
+  float t_h_ = 0.0f, t_rad = 0;
   _heightmap_from_pointset(ptset,
                            heightmap_output,
                            scalar_output,
                            false);
-
+  t_h_ = t.real(); t.mark();
   vgl_point_2d<T> upper_left(heightmap_bounds_.min_x(), heightmap_bounds_.max_y());
   size_t ni = heightmap_output.ni(), nj = heightmap_output.nj();
   // maximum neighbor distance
@@ -285,6 +364,8 @@ void bpgl_heightmap<T>::heightmap_from_pointset(
       T std_dev = sqrt(var_sum/p_sum);
       radial_std_dev(i,j) = std_dev;
     }
+  t_rad = t.real();
+  std::cout << "tzprob, trad " << t_h_ << ' ' << t_rad << std::endl;
 }
 
 template<class T>
